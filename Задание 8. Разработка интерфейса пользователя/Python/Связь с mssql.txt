@@ -1,0 +1,14 @@
+яохянй днярсомшу ахакхнрей х лндскеи:
+https://wiki.python.org/moin/SQL%20Server
+
+PYMSSQL:
+http://pymssql.org/en/stable/
+http://pymssql.org/en/stable/pymssql_examples.html#basic-features-strict-db-api-compliance
+
+PYODBC:
+https://github.com/mkleehammer/pyodbc/wiki
+http://snakeproject.ru/rubric/article.php?art=python_pyodbc
+
+PYPYODBC:
+https://code.google.com/archive/p/pypyodbc/wikis/A_HelloWorld_sample_to_access_mssql_with_python.wiki
+https://code.google.com/archive/p/pypyodbc/

@@ -1,0 +1,6 @@
+Документация по созданию представлений
+Создание представлений: https://msdn.microsoft.com/ru-ru/library/ms190174.aspx
+
+Введение в создание представлений: http://www.sql.ru/docs/sql/u_sql/ch20.shtml
+
+Изменение значений с помощью представлений: http://www.sql.ru/docs/sql/u_sql/ch21.shtml

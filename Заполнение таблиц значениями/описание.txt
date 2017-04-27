@@ -1,0 +1,138 @@
+CREATE TABLE new_employees  
+(  
+ id_num int IDENTITY(1,1),  
+ fname varchar (20),  
+ minit char(1),  
+ lname varchar(30)  
+);  
+  
+INSERT new_employees  
+   (fname, minit, lname)  
+VALUES  
+   ('Karin', 'F', 'Josephs');  
+  
+INSERT new_employees  
+   (fname, minit, lname)  
+VALUES  
+   ('Pirkko', 'O', 'Koskitalo');  
+ƒл€ заполнени€ большим количеством значений (понадобитс€ при исследовании индексов - можно делать в теме 5) можно использовать:
+
+1) специальную программу dbForge Studio for SQL Server 
+
+2) —оздать несколько хранимых процедур примерно такого вида (можно переделать под нужную таблицу с нужными пол€ми)
+
+„исла (когда числовые значени€ не €вл€ютс€ PK заполн€емым с IDENTITY)
+
+create table numbers ( id int not null primary key);
+
+create procedure fill_numbers
+as begin
+  declare counter int default 1;
+  insert into numbers values (1);
+  while counter < 1000000
+  do
+      insert into numbers (id)
+          select id + counter
+          from numbers;
+      select count(*) into counter from numbers;
+      select counter;
+  end while;
+end 
+
+call fill_numbers();
+
+ƒаты
+
+≈сли мы хотим создать записи с минутным интервалом, то нужно выполнить следующий код:
+
+create table dates (
+  id int(11) not null identity primary key,
+  dt datetime not NULL
+);
+
+CREATE PROCEDURE make_dates
+@max_recs int
+as begin
+  declare start_dt datetime;
+  declare numrecs int default 1;
+  set start_dt = date_format( now() - interval max_recs minute, '%Y-%m-%d %H:%i:00');
+
+  insert into dates (dt) values (start_dt );
+
+  while numrecs < max_recs
+  do
+      insert into dates (dt)
+          select dt + interval ( numrecs ) minute
+          from dates;
+      select count(*) into numrecs from dates;
+      select numrecs;
+  end while;
+end
+—троки
+CREATE PROCEDURE [dbo].[randomString] 
+
+@inputSize int, 
+
+@outputRandomString nvarchar(max) output
+
+ AS BEGIN 
+
+    -- Ћюбой известный алгоритм реализации случайной строки заданной длины. 
+
+ END;
+
+
+
+«агрузка в MS SQL из csv файла (можно использовать дл€ дочерних таблиц)
+
+
+ƒл€ загрузки из csv файла можно воспользоватьс€ командой BULKINSERT
+CSV означает Comma Separated Values (значени€ разделенные зап€тыми), иногда называемых также Comma Delimited Values.
+—оздадим таблицу TestTable в тестовой базе данных TestData.
+
+
+USE TestData
+GO
+
+CREATE TABLE CSVTest
+(ID INT,
+FirstName VARCHAR(40),
+LastName VARCHAR(40),
+BirthDate SMALLDATETIME)
+GO
+
+
+—оздайте CSV файл на диске C: с ниже следующим содержанием. –асположение файла должно быть C:\csvtest.txt
+
+1,James,Smith,19750101
+2,Meggie,Smith,19790122
+3,Robert,Smith,20071101
+4,Alex,Smith,20040202
+
+“еперь запустите следующий скрипт дл€ загрузки всех данных из CSV в таблицу базы данных. ≈сли будут ошибки в некоторых, то эта строка не загрузитс€, но другие строки будут загружены.
+
+BULK INSERT CSVTest
+           FROM 'c:\csvtest.txt'
+           WITH
+           (
+               FIELDTERMINATOR = ',',
+               ROWTERMINATOR = '\n'
+           )
+GO
+--Check the content of the table.
+SELECT *
+FROM CSVTest
+GO
+--Drop the table to clean up database.
+DROP TABLE CSVTest
+GO
+
+ѕроблемы, которые могут возникнуть при загрузке данных.
+1.ќшибка прав на BULK INSERT. ¬ этом случае у пользовател€, под которым прошла авторизаци€, нет права на использовани€ BULK INSERT. ¬ результате выполнени€ команды по€витс€ примерно такое сообщение
+Msg 4834, Level 16, State 1, Line 2 You do not have permission to use the bulk load statement.
+“акое может по€витьс€ даже у пользовател€ с права "sysadmin". ƒл€ решени€ проблемы нужно дать права следующей командой.
+GRANT ADMINISTER BULK OPERATIONS TO [server_login]
+
+2.‘айл, который необходимо загрузить должен находитьс€ на компьютере где установлен сервер MS SQL. 
+
+ѕодробное описание BULK INSERT https://msdn.microsoft.com/ru-ru/library/ms188365.aspx

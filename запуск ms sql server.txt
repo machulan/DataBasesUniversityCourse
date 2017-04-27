@@ -1,0 +1,1 @@
+databases => new database => Cyrillica Cl100AI => new query => transportations(my db) => insert sql code => execute

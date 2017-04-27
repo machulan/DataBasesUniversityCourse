@@ -1,0 +1,3 @@
+https://habrahabr.ru/post/247373/
+
+http://www.sql.ru/articles/mssql/03013101indexes.shtml
