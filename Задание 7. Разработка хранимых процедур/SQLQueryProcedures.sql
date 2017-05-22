@@ -82,6 +82,7 @@ DECLARE @Number FLOAT
 DECLARE @ReturnStatus INT
 EXECUTE @ReturnStatus = NumberOfKilometersTraveled 1, @Result = @Number OUTPUT;
 PRINT @Number;
+
 --SELECT @Number, @ReturnStatus;
 
 ----------------------------------------------------------------
@@ -141,6 +142,34 @@ CLOSE @ResultCursor
 DEALLOCATE @ResultCursor
 GO
 
+--запуск IMPROVED
+CREATE TABLE #Result (driver_id bigint, first_name nvarchar(255), last_name nvarchar(255), num FLOAT);
+
+DECLARE @ResultCursor CURSOR;
+EXECUTE GetDriverPathLengthPairs @DriversCursor = @ResultCursor OUTPUT;
+DECLARE @driver_id bigint, @first_name nvarchar(255), @last_name nvarchar(255), @num FLOAT
+FETCH NEXT FROM @ResultCursor INTO @driver_id, @first_name, @last_name, @num
+WHILE (@@FETCH_STATUS = 0)
+BEGIN
+	PRINT CONCAT('ID: ', @driver_id, ', имя: ', @first_name, ', фамилия: ', @last_name, ', количество проезженных километров: ', @num)
+	INSERT #Result
+		(driver_id, first_name, last_name, num)
+	VALUES
+		(@driver_id, @first_name, @last_name, @num)
+	--PRINT 'AAAAAAAAAAAA'
+	--PRINT @num
+	--PRINT 'BBBBBBBBBBBBB'
+	FETCH NEXT FROM @ResultCursor INTO @driver_id, @first_name, @last_name, @num
+END
+CLOSE @ResultCursor
+DEALLOCATE @ResultCursor
+GO
+
+SELECT *
+FROM #Result;
+
+DROP TABLE #Result;
+
 
 ----------------------------------------------------------------
 --процедура расчета прибыли за заданный период
@@ -178,7 +207,7 @@ DROP PROCEDURE GetProfitOnPeriod
 --запуск
 DECLARE @SumProfit FLOAT
 DECLARE @ReturnStatus INT
-DECLARE @Begin DATE = CONVERT(date,'12.03.2015',104)
+DECLARE @Begin DATE = CONVERT(date,'12.01.2015',104)
 DECLARE @End DATE = CONVERT(date,'12.04.2015',104)
 
 EXECUTE @ReturnStatus = GetProfitOnPeriod @Begin, @End, @Result = @SumProfit OUTPUT;
@@ -241,6 +270,36 @@ CLOSE @YearProfitStatisticsCursor
 DEALLOCATE @YearProfitStatisticsCursor
 GO
 
+
+--запуск IMPROVED
+CREATE TABLE #Result (year_ BIGINT, profit FLOAT, absolute_growth BIGINT, relative_growth FLOAT);
+
+DECLARE @YearProfitStatisticsCursor CURSOR;
+EXECUTE YearProfitStatistics @ResultCursor = @YearProfitStatisticsCursor OUTPUT;
+DECLARE @year BIGINT, @profit FLOAT, @prev_profit FLOAT = 0
+FETCH NEXT FROM @YearProfitStatisticsCursor INTO @year, @profit
+WHILE (@@FETCH_STATUS = 0)
+BEGIN
+	PRINT CONCAT('Год: ', @year, ', Доход: ', CONVERT(bigint, @profit), 
+	', Абсолютный рост: ', @profit - @prev_profit,-- CONVERT(bigint, @profit) - CONVERT(bigint, @prev_profit), 
+	', Относительный рост: ',  IIF(@prev_profit = 0, 100, (CONVERT(bigint, @profit) - CONVERT(bigint, @prev_profit)) / @prev_profit * 100), '%')
+
+	INSERT #Result
+		(year_, profit, absolute_growth, relative_growth)
+	VALUES
+		(@year, @profit, @profit - @prev_profit, IIF(@prev_profit = 0, 100, (@profit - @prev_profit) / @prev_profit * 100))
+
+	SET @prev_profit = @profit
+	FETCH NEXT FROM @YearProfitStatisticsCursor INTO @year, @profit
+END
+CLOSE @YearProfitStatisticsCursor
+DEALLOCATE @YearProfitStatisticsCursor
+GO
+
+SELECT *
+FROM #Result;
+
+DROP TABLE #Result;
 
 /*
 SELECT DISTINCT DATEPART(year,ts.end_time)
